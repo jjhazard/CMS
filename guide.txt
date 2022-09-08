@@ -1,1 +1,1 @@
-https://randomnerdtutorials.com/rf-433mhz-transmitter-receiver-module-with-arduino/
+https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/spi-sensors-devices
