@@ -31,18 +31,19 @@ sudo python3 -m pip install pyserial
 sudo python3 -m pip install Adafruit-Blinka
 sudo python3 -m pip install apscheduler
 sudo python3 -m pip install adafruit-circuitpython-matrixkeypad
-sudo python3 -m pip install adafruit-circuitpython-rfm9x
+sudo python3 -m pip install adafruit-circuitpython-rfm69
 
 #Install CMS from repository
 wget https://github.com/jjhazard/CMS/archive/master.zip
 unzip master.zip
 rm master.zip
 cd CMS-main/CMS
+cur=$(pwd)
 
-#Write bash script to run program if it crashes
+#Write bash script to run at start and restart program if it crashes
 echo "#!/bin/bash
 
-cd /home/pi/CMS-main/CMS
+cd $cur
 python3 $1.py &
 PID=\$!
 while true
@@ -52,10 +53,8 @@ do
  PID=\$!;
 done;" > CMSrun.sh
 
-#Make bash script executable and set it to run on startup
-ORIGINAL='exit 0'
-NEW='bash \/home\/CMS-main\/CMS\/CMSrun.sh \&\n\nexit 0'
-sudo sed -i -E "$ s/$ORIGINAL/$NEW/" /etc/rc.local
+#Add command to run bash script to startup file
+sudo sed -i -E "$ s/exit 0/bash ${cur//\/\\\/}\/CMSrun.sh \&\n\n&/" /etc/rc.local
 
 #Set local timezone to match product end location
 case $2 in
@@ -79,4 +78,8 @@ case $2 in
   ;;
 esac
 
+#Open config interface to turn on SPI
+sudo raspi-config
+
+#Reboot system to initialize CMS
 sudo reboot

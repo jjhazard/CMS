@@ -1,22 +1,19 @@
 import board
 import digitalio
 import adafruit_matrixkeypad
+import adafruit_rfm69
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 from threading import Lock
+from statistics import mode
 
-class Transceiver():
+class Transceiver:
 
     def __init__(self):
-        self.__transmit = digitalio.DigitalInOut(board.D15)
-        self.__transmit.switch_to_output()
-        self.__receive = digitalio.DigitalInOut(board.D14)
-        self.__receive.switch_to_input(pull=digitalio.Pull.DOWN)
-        self.__delay = 0.009
-        self.__signals = {"validation": '1111011101101000',
-                               "reset": '1111111101010101',
-                               "valid": '1111111100000000',
-                             "invalid": '1111111111111111'}
+        CS = digitalio.DigitalInOut(board.CE1)
+        RESET = digitalio.DigitalInOut(board.D25)
+        spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+        self.rfm69 = adafruit_rfm69.RFM69(spi, CS, RESET, 915.0)
         self.__lock = Lock()
 
     @property
@@ -32,45 +29,27 @@ class Transceiver():
         self.__lock.release()
 
     def receive(self):
-        received = ''
-        while len(received) < 300:
-            received += str(int(self.__receive.value))
-            sleep(self.__delay)
-        segments = received.split(self.__signals["validation"])
-        if len(segments) == 1:
-            return None
-        index = 0
-        while index < len(segments):
-            if len(segments[index]) == 16:
-                index = index + 1
-            else:
-                segments.pop(index)
-        return int(mode(segments), 2)
-
-    def signal(self):
-        return self.__receive.value
+        return str(self.rfm69.receive(timeout=5), 'ascii')
 
     def __sendSignal(self, code):
-        for t in range(10):
-            for bit in self.__signals["validation"]:
-                self.__transmit.value = int(bit)
-                sleep(self.__delay)
-            for bit in code:
-                self.__transmit.value = int(bit)
-                sleep(self.__delay)
+        sending = True
+        while sending:
+            self.rfm69.send(bytearray(code))
+            status = self.rfm69.receive(timeout=3.0)
+            if status == b'valid':
+                sending == False
 
-    def send(self, code): 
-        code = '{0:016b}'.format(int(code))
+    def send(self, code):
         self.__sendSignal(code)
 
     def reset(self):
-        self.__sendSignal(self.__signals["reset"])
+        self.__sendSignal("reset")
 
     def valid(self):
-        self.__sendSignal(self.__signals["valid"])
+        self.__sendSignal("valid")
         
     def invalid(self):
-        self.__sendSignal(self.__signals["invalid"])
+        self.__sendSignal("invalid")
 
 class Relay(digitalio.DigitalInOut):
 

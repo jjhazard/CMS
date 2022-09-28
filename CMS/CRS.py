@@ -27,7 +27,6 @@ available  = Available(folderPath)
 dispatched = Dispatched(folderPath, date)
 expired    = Expired(folderPath, date)
 queue      = Queue(folderPath)
-file_system = Lock()
 #Update scheduler
 sched = BackgroundScheduler()
 #Device variables
@@ -62,16 +61,22 @@ def verifyDatabase():
 #Move or merge dispatched codes to the relevant expired files
 #Merge outdated expired files with the available code set
 def update():
-    global file_system
+    global available
     global dispatched
     global expired
-    file_system.acquire()
     date = datetime.today()
     dispatched.date = date
     expired.date = date
-    Update.Dispatched(dispatched.name, expired.name).execute()
-    Update.Expired(available.name, expired.name).execute()
-    file_system.release()
+    expire_date = date - timedelta(days=2)
+    for file in dispatched.list():
+        file_date = datetime.strptime(file, '%Y.%m.%d')
+        if file_date < expire_date:
+            expired.add(dispatched.dump(file), file)
+    expire_date = date - timedelta(days=14)
+    for file in expired.list()):
+        file_date = datetime.strptime(file, '%Y.%m.%d')
+        if file_date < expire_date:
+            available.add(expired.dump(file))
 sched.add_job(update, 'cron', day='*', hour='0', minute='0')
 sched.start()
 
@@ -127,18 +132,16 @@ def CRS():
     #Loop continuously
     try:
         while True:
-            while not file_system.locked():
-                if (not request.locked) and request.value:
-                    request.acquire
-                    request_handler = Thread(target=generate)
-                    request_handler.start()
+            if (not request.locked) and request.value:
+                request.acquire
+                request_handler = Thread(target=generate)
+                request_handler.start()
 
-                #If the queue exists, empty it
-                if (not transceiver.locked) and queue.exists():
-                    transceiver.acquire
-                    communicator = Thread(target=communicate)
-                    communicator.start()
-            sleep(1)
+            #If the queue exists, empty it
+            if (not transceiver.locked) and queue.exists():
+                transceiver.acquire
+                communicator = Thread(target=communicate)
+                communicator.start()
     except KeyboardInterrupt:
         pass
     global sched

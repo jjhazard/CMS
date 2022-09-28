@@ -29,11 +29,11 @@ sched = BackgroundScheduler()
 keypad = Keypad()
 #Comms variable
 transceiver = Transceiver()
+packet = None
 #Relay variable
 relay = Relay()
 #Buzzer variable
 buzzer = Buzzer()
-file_system = Lock()
 ####################################
 #             Update               #
 ####################################
@@ -42,12 +42,11 @@ def update():
     global dispatched
     date = datetime.today()
     print("Updated CVS at ", datetime.now())
-    files = os.listdir(dispatched.name)
     expire_date = date - timedelta(days=2)
-    for file in files:
+    for file in dispatched.list():
         file_date = datetime.strptime(file, '%Y.%m.%d')
         if file_date < expire_date:
-            os.remove('{}{}'.format(dispatched.name, file))
+            dispatched.remove(file)
 sched.add_job(update, 'cron', day='*', hour='0', minute='0')
 sched.start()
 
@@ -73,30 +72,32 @@ def keypadInput():
     global keypad
     global relay
     global buzzer
-    keypad.processInput()
-    if not keypad.code == '-----' and dispatched.find(keypad.code):
-        Add(expired, keypad.code).execute()
-        print("Activate")
-        relay.activate()
-    else:
-        print("Failure: " + keypad.code)
-        buzzer.activate()
-    keypad.code = ''
-    keypad.release
+    while True:
+        keypad.processInput()
+        if not keypad.code == '-----' and dispatched.find(keypad.code):
+            print("Activate")
+            relay.activate()
+        else:
+            print("Failure: " + keypad.code)
+            buzzer.activate()
+        keypad.code = ''
 
 ####################################
 #     COMMUNICATION OPERATIONS     #
 ####################################
 def receive():
     global transceiver
-    global transceiver_lock
-    code = transceiver.receive()
-    if code:
-        dispatched.add('{0:05d}'.format(code))
-        transceiver.valid()
-    else:
-        transceiver.invalid()
-    transceiver.release
+    global dispatched
+    last_code = None
+    while True:
+        code = transceiver.receive()
+        if code:
+            if code == "reset":
+                dispatched.delete()
+            elif code != last_code:
+                dispatched.add('{0:05d}'.format(code))
+                last_code = code
+                transceiver.valid()
 
 ####################################
 #            DISPATCHER            #
@@ -117,33 +118,20 @@ def CVS():
     global tranceiver
     pressed = []
 
-    #Actual code is:
-    """
-    while True:
-        keys = keypad.pressed_keys
-        if keys and not (pressed == keys):
-            test = test + 1
-            getKeyIfOne(keys)
-            keypadInput()
-    """
-    #Test code is:
-    test = 0
     try:
         while True:
-            while not file_system.locked():
-                if not keypad.locked:
-                    keypad.saveKeys()
-                    if keypad.saved_keys and not (pressed == keypad.saved_keys):
-                        keypad.acquire
-                        keypad_handler = Thread(target=keypadInput)
-                        keypad_handler.start()
+            if not keypad.locked:
+                keypad.saveKeys()
+                if keypad.saved_keys and not (pressed == keypad.saved_keys):
+                    keypad.acquire
+                    keypad_handler = Thread(target=keypadInput)
+                    keypad_handler.start()
                 #If incoming signal, process it
-                if (not transceiver.locked) and transceiver.signal():
-                    transceiver.acquire
-                    communicator = Thread(target=receive)
-                    communicator.start()
-            sleep(1)
-    except KeyboardInterrupt:
+            if (not transceiver.locked) and transceiver.signal():
+                transceiver.acquire
+                communicator = Thread(target=receive)
+                communicator.start()
+     except KeyboardInterrupt:
         pass
     global sched
     sched.shutdown()
