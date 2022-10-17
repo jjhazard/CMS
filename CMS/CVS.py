@@ -82,15 +82,15 @@ def commsMonitor():
         if code:
             if transceiver.lastCode != code:
                 if code == "reset":
-                    transceiver.valid()
+                    transceiver.valid(code)
                     dispatched.delete()
                 elif not (code.isnumeric() and len(code) < 6):
                     transciever.invalid()
                 else:
-                    transceiver.valid()
+                    transceiver.valid(code)
                     dispatched.add(code.zfill(0))
             else:
-                transceiver.valid()
+                transceiver.valid(code)
 
 ####################################
 #            DISPATCHER            #
