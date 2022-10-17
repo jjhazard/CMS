@@ -43,6 +43,7 @@ cur=$(pwd)
 #Write bash script to run at start and restart program if it crashes
 echo "#!/bin/bash
 
+sudo chmod 777 -R $cur
 cd $cur
 TALLY=0
 while [[ \$TALLY -lt 3 ]];
@@ -57,7 +58,7 @@ sudo sed -i -E "$ s/exit 0/bash ${cur//\//\\\/}\/CMSrun.sh \&\n\n&/" /etc/rc.loc
 
 #Add folder path to programs
 sed -i -E "0,/folderPath =/ s/folderPath =/& \'${cur//\//\\\/}\/Codes\/\'/" ./CRS.py
-sed -i -E "0,/folderPath =/ s/folderPath =/& \'${cur//\//\\\/}\/COdes\/\'/" ./CVS.py
+sed -i -E "0,/folderPath =/ s/folderPath =/& \'${cur//\//\\\/}\/Codes\/\'/" ./CVS.py
 
 #Set local timezone to match product end location
 case $2 in
