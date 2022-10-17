@@ -37,8 +37,8 @@ class Transceiver:
             self.__sendVerify(code)
     def reset(self):
         with self.lock:
-            self.__sendSignal("reset")
-    def valid(self):
+            self.__sendVerify("reset")
+    def valid(self, code):
         with self.lock:
             self.lastCode = code
             self.__sendSignal("valid")
