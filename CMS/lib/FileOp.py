@@ -142,7 +142,6 @@ class Dispatched(FolderLock):
                 while searching:
                     test_code = file.read(5)
                     if test_code == code:
-                        self.lock.release()
                         return True
                     elif test_code == '':
                         searching = False
