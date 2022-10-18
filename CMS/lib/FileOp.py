@@ -112,10 +112,11 @@ class Queue(FileLock):
             code = file.read(5)
         return code
     def pop(self):
-        if self.size() == 5:
+        if self.size() <= 5:
             self.delete()
-        with self.lock, FileMod(self.name) as queue:
-            queue.read(5)
+        else:
+            with self.lock, FileMod(self.name) as queue:
+                queue.read(5)
 #Protected config file
 class Config(FileLock):
     def __init__(self, path):
