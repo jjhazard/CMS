@@ -57,17 +57,17 @@ def update():
 def keypadMonitor():
     global keypad
     global relay
-    global buzzer
     global running
     while running:
         keypad.saveKeys()
         if keypad.saved_keys:
             keypad.processInput()
-            if not keypad.code == '-----' and dispatched.find(keypad.code):
-                relay.activate()
-            else:
-                buzzer.activate()
-            keypad.code = ''
+            if keypad.code:
+                if dispatched.find(keypad.code):
+                    relay.activate()
+                    keypad.code = ''
+                else:
+                    keypad.reject()
 
 #Continously check transceiver for signal
 #If reset signal, erase all saved codes
