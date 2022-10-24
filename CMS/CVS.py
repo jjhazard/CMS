@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 #Update
 from apscheduler.schedulers.background import BackgroundScheduler
 #Devices
-from lib.Devices import Transceiver, Relay, Keypad, Buzzer
+from lib.Devices import Transceiver, Relay, Numberpad, Buzzer
 #Threads
 from lib.Tasking import RThread, FLogger
 from time import sleep
@@ -22,8 +22,7 @@ dispatched = Dispatched(folderPath, date)
 sched = BackgroundScheduler()
 #Device variables
 transceiver = Transceiver()
-keypad = Keypad()
-buzzer = Buzzer()
+numberpad = Numberpad()
 relay = Relay()
 #Logger variable
 logger = FLogger()
@@ -50,24 +49,24 @@ def update():
 ####################################
 #          SUBPROCESSES            #
 ####################################
-#Continuously check the keypad for input
+#Continuously check the numberpad for input
 #If input found, process it
 #If valid, expire code and activate unit
 #If invalid, activate the buzzer
-def keypadMonitor():
-    global keypad
+def numberpadMonitor():
+    global numberpad
     global relay
     global running
     while running:
-        keypad.saveKeys()
-        if keypad.saved_keys:
-            keypad.processInput()
-            if keypad.code:
-                if dispatched.find(keypad.code):
+        numberpad.saveKeys()
+        if numberpad.saved_keys:
+            numberpad.processInput()
+            if numberpad.code:
+                if dispatched.find(numberpad.code):
                     relay.activate()
-                    keypad.code = ''
+                    numberpad.code = ''
                 else:
-                    keypad.reject()
+                    numberpad.reject()
 
 #Continously check transceiver for signal
 #If reset signal, erase all saved codes
@@ -100,13 +99,13 @@ def CVS():
     update()
 
     #Start subprocesses
-    keypad_handler = RThread(attempt, [keypadMonitor, "Failure to validate code."])
+    numberpad_handler = RThread(attempt, [numberpadMonitor, "Failure to validate code."])
     communicator   = RThread(attempt, [commsMonitor, "Failure to communicate codes."])
 
     #Continuously keep subprocesses running
     global running
     while running:
-        keypad_handler.renew()
+        numberpad_handler.renew()
         communicator.renew()
         sleep(60)
 
