@@ -37,8 +37,7 @@ class FileLock:
                 os.remove(self.name)
     def exists(self):
         with self.lock:
-            exists = os.path.exists(self.name)
-        return exists
+            return os.path.exists(self.name)
     def verify(self):
         with self.lock:
             if not os.path.exists(self.name):
@@ -46,8 +45,7 @@ class FileLock:
                 file.close()
     def size(self):
         with self.lock:
-            size = os.path.getsize(self.name)
-        return size
+            return os.path.getsize(self.name)
     def getFilePath(self, file=None):
         return self.name
     def add(self, packet, file=None):
@@ -72,11 +70,10 @@ class FolderLock(FileLock):
             size = 0
             for file_name in os.listdir(self.name):
                 size += os.path.getsize(self.getFilePath(file_name))
-        return size
+            return size
     def list(self):
         with self.lock:
-            files = os.listdir(self.name)
-        return files
+            return os.listdir(self.name)
     def getFilePath(self, file_name=None):
         if file_name:
             return '{}{}'.format(self.name, file_name)
@@ -84,7 +81,7 @@ class FolderLock(FileLock):
     def dump(self, file_name):
         with self.lock, open(self.getFilePath(file_name), 'r') as file:
             packet = file.read()
-            os.remove(self.getFilePath(file_name))
+        os.remove(self.getFilePath(file_name))
         return packet
     def remove(self, file_name):
         with self.lock:
@@ -97,8 +94,7 @@ class Available(FileLock):
         with self.lock, FileMod(self.name) as file:
             index = randrange(0, file.size, step=5)
             file.seek(index)
-            code = file.read(5)
-        return code
+            return file.read(5)
     def createCodes(self, start, stop):
         with self.lock, open(self.name, 'a') as file:
             for code in range(start, stop):
@@ -109,8 +105,7 @@ class Queue(FileLock):
         super().__init__(path, "queue")
     def read(self):
         with self.lock, open(self.name, 'r') as file:
-            code = file.read(5)
-        return code
+            return file.read(5)
     def pop(self):
         if self.size() <= 5:
             self.delete()
@@ -126,8 +121,7 @@ class Config(FileLock):
         return 10000
     def getSize(self):
         with self.lock, open(self.name, 'r') as file:
-            size = file.read()[5:]
-        return int(size)
+            return int(file.read()[5:])
     def newSize(self, size):
         with self.lock, open(self.name, 'w') as file:
             file.write('{}{}'.format("size=", str(size)))
