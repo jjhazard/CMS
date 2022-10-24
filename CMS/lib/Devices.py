@@ -99,7 +99,7 @@ class Keypad(adafruit_matrixkeypad.Matrix_Keypad):
         last_press = datetime.now()
         while len(self.code) < 5:
             if (datetime.now() - last_press).total_seconds() > 5:
-                self.code = '-----'
+                self.reject()
             else:
                 self.saveKeys()
                 if not pressed == self.saved_keys:
@@ -107,6 +107,9 @@ class Keypad(adafruit_matrixkeypad.Matrix_Keypad):
                     pressed = self.saved_keys
                     last_press = datetime.now()
             sleep(0.1)
+    def reject(self):
+        self.buzzer.reject()
+        self.code = ''
 
 class Printer:
     def __init__(self):
