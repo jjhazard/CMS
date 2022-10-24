@@ -61,13 +61,16 @@ class Buzzer(digitalio.DigitalInOut):
         super().__init__(board.D24)
         self.switch_to_output()
         self.value = 0
-    def activate(self):
+    def reject(self):
         for buzz in range(3):
             self.value = 1
             sleep(0.1)
             self.value = 0
             sleep(0.07)
-
+    def activate(self):
+        self.value = 1
+        sleep(0.1)
+        self.value = 0
 class Button(digitalio.DigitalInOut):
     def __init__(self):
         super().__init__(board.D17)
@@ -125,18 +128,3 @@ class Printer:
         self.port.write(b'and expires upon use. Enjoy!')
         self.port.write(self.nextLine)
         self.port.write(self.feedLines)
-    def printError(self, error):
-        self.port.write(self.nextLine)
-        self.port.write(self.bigCenter)
-        self.port.write(b'ERROR DETECTED')
-        self.port.write(self.nextLine)
-        self.port.write(self.smallLeft)
-        self.port.write(bytearray(error, 'ascii'))
-        self.port.write(self.nextLine)
-        self.port.write(b'Please alert staff.')
-        self.port.write(self.nextLine)
-        self.port.write(b'System shutting down.')
-        self.port.write(self.nextLine)
-        self.port.write(b'Restart when issue resolved.')
-        self.port.write(self.feedLines)
-    
