@@ -71,6 +71,7 @@ class Buzzer(digitalio.DigitalInOut):
         self.value = 1
         sleep(0.1)
         self.value = 0
+
 class Button(digitalio.DigitalInOut):
     def __init__(self):
         super().__init__(board.D17)
