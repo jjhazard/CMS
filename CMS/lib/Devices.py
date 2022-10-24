@@ -68,7 +68,7 @@ class Buzzer(digitalio.DigitalInOut):
             sleep(0.1)
             self.value = 0
             sleep(0.07)
-    def activate(self):
+    def buzz(self):
         self.value = 1
         sleep(0.1)
         self.value = 0
@@ -84,6 +84,7 @@ class Keypad(adafruit_matrixkeypad.Matrix_Keypad):
         rows = [digitalio.DigitalInOut(x) for x in (board.D6, board.D13, board.D19, board.D26)]
         keys = ((1, 2, 3), (4, 5, 6), (7, 8, 9), ("*", 0, "#"))
         super().__init__(rows, cols, keys)
+        self.buzzer = Buzzer()
         self.saved_keys = []
         self.code = ''
     def saveKeys(self):
@@ -91,7 +92,7 @@ class Keypad(adafruit_matrixkeypad.Matrix_Keypad):
     def getKeyIfOne(self):
         if len(self.saved_keys) == 1:
             self.code = '{}{}'.format(self.code, self.saved_keys[0])
-            sleep(0.15)
+            self.buzzer.buzz()
     def processInput(self):
         self.getKeyIfOne()
         pressed = []
