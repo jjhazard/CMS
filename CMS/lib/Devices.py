@@ -20,9 +20,10 @@ class Transceiver:
     def receive(self):
         with self.lock:
             packet = self.rfm69.receive(timeout=5)
-        if packet:
-            return str(packet, 'ascii')
-        return None
+            try:
+                return str(packet, 'ascii')
+            except:
+                return None
     def __sendSignal(self, code):
         self.rfm69.send(bytearray(code, 'ascii'))
     def __sendVerify(self, code):
