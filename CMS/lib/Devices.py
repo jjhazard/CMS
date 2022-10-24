@@ -25,27 +25,25 @@ class Transceiver:
             except:
                 return None
     def __sendSignal(self, code):
-        self.rfm69.send(bytearray(code, 'ascii'))
-    def __sendVerify(self, code):
-        sending = True
-        while sending:
+        with self.lock:
             self.rfm69.send(bytearray(code, 'ascii'))
-            status = self.rfm69.receive(timeout=3.0)
-            if status == b'valid':
-                sending = False
+    def __sendVerify(self, code):
+        with self.lock:
+            sending = True
+            while sending:
+                self.rfm69.send(bytearray(code, 'ascii'))
+                status = self.rfm69.receive(timeout=3.0)
+                if status == b'valid':
+                    sending = False
     def send(self, code):
-        with self.lock:
-            self.__sendVerify(code)
+        self.__sendVerify(code)
     def reset(self):
-        with self.lock:
-            self.__sendVerify("reset")
+        self.__sendVerify("reset")
     def valid(self, code):
-        with self.lock:
-            self.lastCode = code
-            self.__sendSignal("valid")
+        self.lastCode = code
+        self.__sendSignal("valid")
     def invalid(self):
-        with self.lock:
-            self.__sendSignal("invalid")
+        self.__sendSignal("invalid")
 
 class Relay(digitalio.DigitalInOut):
     def __init__(self):
@@ -78,7 +76,7 @@ class Button(digitalio.DigitalInOut):
         super().__init__(board.D17)
         self.switch_to_input(pull=digitalio.Pull.DOWN)
 
-class Keypad(adafruit_matrixkeypad.Matrix_Keypad):
+class Numberpad(adafruit_matrixkeypad.Matrix_Keypad):
     def __init__(self):
         cols = [digitalio.DigitalInOut(x) for x in (board.D12, board.D16, board.D20)]
         rows = [digitalio.DigitalInOut(x) for x in (board.D6, board.D13, board.D19, board.D26)]
