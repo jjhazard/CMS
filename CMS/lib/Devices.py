@@ -53,7 +53,7 @@ class Relay(digitalio.DigitalInOut):
         self.value = 0
     def activate(self):
         self.value = 1
-        sleep(5)
+        sleep(3)
         self.value = 0
 
 class Buzzer(digitalio.DigitalInOut):
