@@ -124,6 +124,7 @@ def requestMonitor():
                     config.newSize(size)
         else:
             pressed = False
+
 #Continously check queue for codes
 #Read the first code off the queue
 #Communicate until confirmed received
@@ -166,7 +167,6 @@ def attempt(function, errorMessage):
         global logger
         running = False
         logger.error(errorMessage)
-        exit(1)
 
 #Start the scheduler (occurs when program starts)
 sched.add_job(attempt,
@@ -175,9 +175,10 @@ sched.add_job(attempt,
               day='*',
               hour='0',
               minute='0')
-sched.start()
 
 #Allows program to be run from bash script
 if __name__ == '__main__':
+    sched.start()
     attempt(CRS, ["Failure in dispatcher."])
     sched.shutdown()
+    exit{1)
