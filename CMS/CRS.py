@@ -68,7 +68,7 @@ def update():
         dispatched.delete()
         expired.delete()
         queue.delete()
-        available.createCodes(1, size)
+        available.createCodes(0, size)
         global transceiver
         transceiver.reset()
 
