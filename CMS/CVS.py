@@ -39,7 +39,7 @@ def update():
         os.mkdir(folderPath)
     dispatched.verify()
     date = datetime.today()
-    print("Updated CVS at ", datetime.now())
+    dispatched.date = date
     expire_date = date - timedelta(days=2)
     for file in dispatched.list():
         file_date = datetime.strptime(file, '%Y.%m.%d')
