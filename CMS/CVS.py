@@ -87,7 +87,7 @@ def commsMonitor():
                     transceiver.invalid()
                 else:
                     transceiver.valid(code)
-                    dispatched.add(code.zfill(0))
+                    dispatched.add(code)
             else:
                 transceiver.valid(code)
 
