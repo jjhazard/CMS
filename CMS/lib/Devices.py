@@ -75,6 +75,12 @@ class Button(digitalio.DigitalInOut):
     def __init__(self):
         super().__init__(board.D17)
         self.switch_to_input(pull=digitalio.Pull.DOWN)
+    def held(self):
+        end = datetime.now() + timedelta(milliseconds=800)
+        while datetime.now() < end:
+            if not self.value:
+               return False
+        return True
 
 class Numberpad(adafruit_matrixkeypad.Matrix_Keypad):
     def __init__(self):
