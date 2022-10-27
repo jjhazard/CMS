@@ -84,7 +84,7 @@ def commsMonitor():
                     transceiver.valid(code)
                     dispatched.delete()
                 elif not (code.isnumeric() and len(code) < 6):
-                    transciever.invalid()
+                    transceiver.invalid()
                 else:
                     transceiver.valid(code)
                     dispatched.add(code.zfill(0))
