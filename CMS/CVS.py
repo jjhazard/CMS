@@ -83,7 +83,7 @@ def commsMonitor():
                 if code == "reset":
                     transceiver.valid(code)
                     dispatched.delete()
-                elif not (code.isnumeric() and len(code) < 6):
+                elif not (code.isnumeric() and len(code) == 5):
                     transceiver.invalid()
                 else:
                     transceiver.valid(code)
