@@ -1,18 +1,17 @@
 import board
 import digitalio
-import adafruit_rfm69
 from time import sleep
 from datetime import datetime, timedelta
-from statistics import mode
 
 class Transceiver:
     def __init__(self):
+        from adafruit_rfm69 import RFM69
         from threading import Lock
+        from busio import SPI
         CS = digitalio.DigitalInOut(board.CE1)
         RESET = digitalio.DigitalInOut(board.D25)
-        from busio import SPI
         spi = SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-        self.rfm69 = adafruit_rfm69.RFM69(spi, CS, RESET, 915.0)
+        self.rfm69 = RFM69(spi, CS, RESET, 915.0)
         self.lastCode = ''
         self.lock = Lock()
     def receive(self):
@@ -138,9 +137,9 @@ class Printer:
     def __init__(self):
         import serial
         self.port = serial.Serial(port='/dev/ttyUSB0',
-                         baudrate=9600,
-                         parity=serial.PARITY_NONE,
-                         stopbits=serial.STOPBITS_ONE)
+                    baudrate=9600,
+                    parity=serial.PARITY_NONE,
+                    stopbits=serial.STOPBITS_ONE)
         self.smallLeft = bytearray.fromhex('1b401d10111b6100')
         self.nextLine  = bytearray.fromhex('0d0a')
         self.bigCenter = bytearray.fromhex('1b401d21111b6101')
