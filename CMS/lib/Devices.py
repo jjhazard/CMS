@@ -4,7 +4,15 @@ from time import sleep
 from datetime import datetime, timedelta
 
 class Transceiver:
-    def __init__(self):
+    def program(self, code_system):
+        self.rfm69.encryption_key = (b"\x45\x78\x63\x65\x6C\x20\x54\x69\x72\x65\x20\x47\x61\x75\x67\x65")
+        if code_system == 'CRS':
+            self.rfm69.node = 1
+            self.rfm69.destination = 2
+        else:
+            self.rfm69.node = 2
+            self.rfm69.destination = 1
+    def __init__(self, code_system):
         from adafruit_rfm69 import RFM69
         from threading import Lock
         from busio import SPI
@@ -12,6 +20,7 @@ class Transceiver:
         RESET = digitalio.DigitalInOut(board.D25)
         spi = SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
         self.rfm69 = RFM69(spi, CS, RESET, 915.0)
+        self.program(code_system)
         self.lastCode = ''
         self.lock = Lock()
     def receive(self):
