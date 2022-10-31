@@ -24,7 +24,7 @@ size       = 0
 #Update scheduler
 sched = BackgroundScheduler()
 #Device variables
-transceiver = Transceiver()
+transceiver = Transceiver('CRS')
 printer = Printer()
 request = Button()
 #Logger variable
