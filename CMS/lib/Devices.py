@@ -84,36 +84,49 @@ class Button(digitalio.DigitalInOut):
 
 class Numberpad(adafruit_matrixkeypad.Matrix_Keypad):
     def __init__(self):
-        cols = [digitalio.DigitalInOut(x) for x in (board.D12, board.D16, board.D20)]
-        rows = [digitalio.DigitalInOut(x) for x in (board.D6, board.D13, board.D19, board.D26)]
-        keys = ((1, 2, 3), (4, 5, 6), (7, 8, 9), ("*", 0, "#"))
-        super().__init__(rows, cols, keys)
+        self.keys = {'KEY_0': '0', 'KEY_1': '1',
+                     'KEY_2': '2', 'KEY_3': '3',
+                     'KEY_4': '4', 'KEY_5': '5',
+                     'KEY_6': '6', 'KEY_7': '7',
+                     'KEY_8': '8', 'KEY_9': '9'}
+        self.special = False
+        import evdev
+        self.port = evdev.InputDevice('/dev/input/event0')
+        self.port.grab()
+        self.pressed = evdev.ecodes.EV_KEY
+        self.decipher = evdev.categorize
+        self.code = ''
+        self.time = 0
         self.buzzer = Buzzer()
-        self.saved_keys = []
+    def clear(self):
         self.code = ''
-    def saveKeys(self):
-        self.saved_keys = self.pressed_keys
-    def getKeyIfOne(self):
-        if len(self.saved_keys) == 1:
-            self.code = '{}{}'.format(self.code, self.saved_keys[0])
-            self.buzzer.buzz()
-    def processInput(self):
-        self.getKeyIfOne()
-        pressed = []
-        last_press = datetime.now()
-        while len(self.code) < 5:
-            if (datetime.now() - last_press).total_seconds() > 5:
-                self.reject()
-            else:
-                self.saveKeys()
-                if not pressed == self.saved_keys:
-                    self.getKeyIfOne()
-                    pressed = self.saved_keys
-                    last_press = datetime.now()
-            sleep(0.1)
+        self.time = 0
     def reject(self):
+        self.clear()
         self.buzzer.reject()
-        self.code = ''
+    def now(self):
+        return datetime.now().timestamp()
+    def getCode(self):
+        while True:
+            event = self.port.read_one()
+            if not event:
+                if self.time and not self.now-self.time < 5:
+                    self.reject()
+                continue
+            if event.type == self.pressed:
+                self.time = event.sec
+                key = self.decipher(event)
+                if key.keystate:
+                    if key.scancode == 42:
+                        self.special = True
+                    elif self.special:
+                        self.special = False
+                        if key.scancode == 4:
+                            return self.code 
+                        else:
+                            self.reject()
+                    else:
+                        self.code += self.keys[key.keycode]
 
 class Printer:
     def __init__(self):
