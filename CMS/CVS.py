@@ -59,7 +59,7 @@ def numberpadMonitor():
     global running
     while running:
         code = numberpad.getCode()
-        if len(code) == 5 and dispatched.find(code):
+        if len(code) == 4 and dispatched.find(code):
             numberpad.clear()
             relay.activate()
         else:
@@ -80,7 +80,7 @@ def commsMonitor():
                 if code == "reset":
                     transceiver.valid(code)
                     dispatched.delete()
-                elif not (code.isnumeric() and len(code) == 5):
+                elif not (code.isnumeric() and len(code) == 4):
                     transceiver.invalid()
                 else:
                     transceiver.valid(code)
