@@ -63,7 +63,7 @@ def update():
     total_size = available.size()
     total_size += dispatched.size()
     total_size += expired.size()
-    if not (total_size / 5) == size:
+    if not (total_size / 4) == size:
         available.delete()
         dispatched.delete()
         expired.delete()
