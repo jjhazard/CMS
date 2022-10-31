@@ -92,33 +92,33 @@ class Available(FileLock):
         super().__init__(path, "available")
     def get(self):
         with self.lock, FileMod(self.name) as file:
-            index = randrange(0, file.size, step=5)
+            index = randrange(0, file.size, step=4)
             file.seek(index)
-            return file.read(5)
+            return file.read(4)
     def createCodes(self, start, stop):
         with self.lock, open(self.name, 'a') as file:
             for code in range(start, stop):
-                file.write('{0:05d}'.format(code))
+                file.write('{0:04d}'.format(code))
 #Protected queue file
 class Queue(FileLock):
     def __init__(self, path):
         super().__init__(path, "queue")
     def read(self):
         with self.lock, open(self.name, 'r') as file:
-            return file.read(5)
+            return file.read(4)
     def pop(self):
-        if self.size() <= 5:
+        if self.size() <= 4:
             self.delete()
         else:
             with self.lock, FileMod(self.name) as queue:
-                queue.read(5)
+                queue.read(4)
 #Protected config file
 class Config(FileLock):
     def __init__(self, path):
         super().__init__(path, "config.txt")
     def default(self):
-        self.newSize(10000)
-        return 10000
+        self.newSize(5000)
+        return 5000
     def getSize(self):
         with self.lock, open(self.name, 'r') as file:
             return int(file.read()[5:])
@@ -135,7 +135,7 @@ class Dispatched(FolderLock):
             with self.lock, FileMod(self.getFilePath(file_name)) as file:
                 searching = True
                 while searching:
-                    test_code = file.read(5)
+                    test_code = file.read(4)
                     if test_code == code:
                         return True
                     elif test_code == '':
