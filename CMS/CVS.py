@@ -58,15 +58,12 @@ def numberpadMonitor():
     global relay
     global running
     while running:
-        numberpad.saveKeys()
-        if numberpad.saved_keys:
-            numberpad.processInput()
-            if numberpad.code:
-                if dispatched.find(numberpad.code):
-                    relay.activate()
-                    numberpad.code = ''
-                else:
-                    numberpad.reject()
+        code = numberpad.getCode()
+        if len(code) == 5 and dispatched.find(code):
+            numberpad.clear()
+            relay.activate()
+        else:
+            numberpad.reject()
 
 #Continously check transceiver for signal
 #If reset signal, erase all saved codes
