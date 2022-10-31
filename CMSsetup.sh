@@ -30,7 +30,7 @@ sudo apt-get install python3
 sudo python3 -m pip install pyserial
 sudo python3 -m pip install Adafruit-Blinka
 sudo python3 -m pip install apscheduler
-sudo python3 -m pip install adafruit-circuitpython-matrixkeypad
+sudo python3 -m pip install evdev
 sudo python3 -m pip install adafruit-circuitpython-rfm69
 
 #Install CMS from repository
