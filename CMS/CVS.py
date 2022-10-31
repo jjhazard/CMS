@@ -21,7 +21,7 @@ dispatched = Dispatched(folderPath, date)
 #Update variable
 sched = BackgroundScheduler()
 #Device variables
-transceiver = Transceiver()
+transceiver = Transceiver('CVS')
 numberpad = Numberpad()
 relay = Relay()
 #Logger variable
