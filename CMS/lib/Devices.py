@@ -1,14 +1,13 @@
 import board
-import serial
 import digitalio
 import adafruit_rfm69
 from time import sleep
 from datetime import datetime, timedelta
-from threading import Lock
 from statistics import mode
 
 class Transceiver:
     def __init__(self):
+        from threading import Lock
         CS = digitalio.DigitalInOut(board.CE1)
         RESET = digitalio.DigitalInOut(board.D25)
         from busio import SPI
@@ -73,7 +72,7 @@ class Buzzer(digitalio.DigitalInOut):
 class Button(digitalio.DigitalInOut):
     def __init__(self):
         super().__init__(board.D17)
-        self.switch_to_input(pull=digitalio.Pull.DOWN)
+        self.switch_to_input(pull=digitalio.Pull.UP)
     def held(self):
         end = datetime.now() + timedelta(milliseconds=800)
         while datetime.now() < end:
@@ -83,6 +82,7 @@ class Button(digitalio.DigitalInOut):
 
 class Numberpad(digitalio.DigitalInOut):
     def __init__(self):
+        import evdev
         super().__init__(board.D24)
         self.switch_to_output()
         self.value = 0
@@ -92,7 +92,6 @@ class Numberpad(digitalio.DigitalInOut):
                      'KEY_6': '6', 'KEY_7': '7',
                      'KEY_8': '8', 'KEY_9': '9'}
         self.special = False
-        import evdev
         self.port = evdev.InputDevice('/dev/input/event0')
         self.port.grab()
         self.pressed = evdev.ecodes.EV_KEY
@@ -137,6 +136,7 @@ class Numberpad(digitalio.DigitalInOut):
 
 class Printer:
     def __init__(self):
+        import serial
         self.port = serial.Serial(port='/dev/ttyUSB0',
                          baudrate=9600,
                          parity=serial.PARITY_NONE,
