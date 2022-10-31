@@ -1,8 +1,6 @@
 import board
-import busio
 import serial
 import digitalio
-import adafruit_matrixkeypad
 import adafruit_rfm69
 from time import sleep
 from datetime import datetime, timedelta
@@ -13,7 +11,8 @@ class Transceiver:
     def __init__(self):
         CS = digitalio.DigitalInOut(board.CE1)
         RESET = digitalio.DigitalInOut(board.D25)
-        spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+        from busio import SPI
+        spi = SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
         self.rfm69 = adafruit_rfm69.RFM69(spi, CS, RESET, 915.0)
         self.lastCode = ''
         self.lock = Lock()
@@ -82,8 +81,11 @@ class Button(digitalio.DigitalInOut):
                return False
         return True
 
-class Numberpad(adafruit_matrixkeypad.Matrix_Keypad):
+class Numberpad(digitalio.DigitalInOut):
     def __init__(self):
+        super().__init__(board.D24)
+        self.switch_to_output()
+        self.value = 0
         self.keys = {'KEY_0': '0', 'KEY_1': '1',
                      'KEY_2': '2', 'KEY_3': '3',
                      'KEY_4': '4', 'KEY_5': '5',
@@ -97,36 +99,41 @@ class Numberpad(adafruit_matrixkeypad.Matrix_Keypad):
         self.decipher = evdev.categorize
         self.code = ''
         self.time = 0
-        self.buzzer = Buzzer()
     def clear(self):
         self.code = ''
         self.time = 0
+    def beep(self):
+        self.value = 1
+        sleep(0.1)
+        self.value = 0
     def reject(self):
         self.clear()
-        self.buzzer.reject()
+        for buzz in range(3):
+            self.beep()
+            sleep(0.07)
     def now(self):
         return datetime.now().timestamp()
     def getCode(self):
         while True:
             event = self.port.read_one()
-            if not event:
-                if self.time and not self.now-self.time < 5:
+            if not (event or event.type == self.pressed):
+                if self.time and self.now-self.time > 5:
                     self.reject()
                 continue
-            if event.type == self.pressed:
+            key = self.decipher(event)
+            if key.keystate:
                 self.time = event.sec
-                key = self.decipher(event)
-                if key.keystate:
-                    if key.scancode == 42:
-                        self.special = True
-                    elif self.special:
-                        self.special = False
-                        if key.scancode == 4:
-                            return self.code 
-                        else:
-                            self.reject()
+                self.beep()
+                if key.scancode == 42:
+                    self.special = True
+                elif self.special:
+                    self.special = False
+                    key.scancode == 4:
+                        return self.code 
                     else:
-                        self.code += self.keys[key.keycode]
+                        self.reject()
+                else:
+                    self.code += self.keys[key.keycode]
 
 class Printer:
     def __init__(self):
