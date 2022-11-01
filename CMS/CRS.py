@@ -107,23 +107,19 @@ def requestMonitor():
     global dispatched
     global queue
     global printer
-    was_pressed = False
     while running:
-        if request.pressed():
-            if not was_pressed:
-                was_pressed = True
-                code = available.get()
-                printer.print(code)
-                dispatched.add(code)
-                queue.add(code)
-                if available.size() < 100:
-                    new_size = size + 1000
-                    available.createCodes(size, new_size)
-                    size = new_size
-                    global config
-                    config.newSize(size)
-        else:
-            was_pressed = False
+        if not request.new():
+            continue
+        code = available.get()
+        printer.print(code)
+        dispatched.add(code)
+        queue.add(code)
+        if available.size() < 100:
+            new_size = size + 1000
+            available.createCodes(size, new_size)
+            size = new_size
+            global config
+            config.newSize(size)
 
 #Continously check queue for codes
 #Read the first code off the queue
