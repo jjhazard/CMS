@@ -65,8 +65,13 @@ class Button(digitalio.DigitalInOut):
     def __init__(self):
         super().__init__(board.D24)
         self.switch_to_input(pull=digitalio.Pull.UP)
-    def pressed(self):
-        return not self.value
+        self.__pressed = False
+    def new(self):
+        if self.value:
+            self.__pressed = False
+        elif not self.__pressed:
+            self.__pressed = True
+        return self.__pressed
 
 class Numberpad(digitalio.DigitalInOut):
     def __init__(self):
