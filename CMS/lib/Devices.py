@@ -61,25 +61,9 @@ class Relay(digitalio.DigitalInOut):
         sleep(3)
         self.value = 0
 
-class Buzzer(digitalio.DigitalInOut):
-    def __init__(self):
-        super().__init__(board.D24)
-        self.switch_to_output()
-        self.value = 0
-    def reject(self):
-        for buzz in range(3):
-            self.value = 1
-            sleep(0.1)
-            self.value = 0
-            sleep(0.07)
-    def buzz(self):
-        self.value = 1
-        sleep(0.1)
-        self.value = 0
-
 class Button(digitalio.DigitalInOut):
     def __init__(self):
-        super().__init__(board.D17)
+        super().__init__(board.D24)
         self.switch_to_input(pull=digitalio.Pull.UP)
     def held(self):
         end = datetime.now() + timedelta(milliseconds=800)
@@ -91,24 +75,26 @@ class Button(digitalio.DigitalInOut):
 class Numberpad(digitalio.DigitalInOut):
     def __init__(self):
         import evdev
+        from time import time
         super().__init__(board.D24)
         self.switch_to_output()
         self.value = 0
+        self.time = time
+        self.pressed = evdev.ecodes.EV_KEY
+        self.decipher = evdev.categorize
+        self.port = evdev.InputDevice('/dev/input/event0')
+        self.port.grab()
         self.keys = {'KEY_0': '0', 'KEY_1': '1',
                      'KEY_2': '2', 'KEY_3': '3',
                      'KEY_4': '4', 'KEY_5': '5',
                      'KEY_6': '6', 'KEY_7': '7',
                      'KEY_8': '8', 'KEY_9': '9'}
         self.special = False
-        self.port = evdev.InputDevice('/dev/input/event0')
-        self.port.grab()
-        self.pressed = evdev.ecodes.EV_KEY
-        self.decipher = evdev.categorize
         self.code = ''
-        self.time = 0
+        self.start = 0
     def clear(self):
         self.code = ''
-        self.time = 0
+        self.start = 0
     def beep(self):
         self.value = 1
         sleep(0.1)
@@ -118,29 +104,28 @@ class Numberpad(digitalio.DigitalInOut):
         for buzz in range(3):
             self.beep()
             sleep(0.07)
-    def now(self):
-        return datetime.now().timestamp()
     def getCode(self):
         while True:
             event = self.port.read_one()
-            if not (event or event.type == self.pressed):
-                if self.time and self.now-self.time > 5:
+            if not (event and event.type == self.pressed):
+                if self.start and self.time()-self.start > 5:
                     self.reject()
                 continue
             key = self.decipher(event)
-            if key.keystate:
-                self.time = event.sec
-                self.beep()
-                if key.scancode == 42:
-                    self.special = True
-                elif self.special:
-                    self.special = False
-                    key.scancode == 4:
-                        return self.code 
-                    else:
-                        self.reject()
+            if not key.keystate:
+                continue
+            self.time = event.sec
+            self.beep()
+            if key.scancode == 42:
+                self.special = True
+            elif self.special:
+                self.special = False
+                if key.scancode == 4:
+                    return self.code 
                 else:
-                    self.code += self.keys[key.keycode]
+                    self.reject()
+            else:
+                self.code += self.keys[key.keycode]
 
 class Printer:
     def __init__(self):
