@@ -69,7 +69,9 @@ class Button(digitalio.DigitalInOut):
     def new(self):
         if self.value:
             self.__pressed = False
-        elif not self.__pressed:
+        elif self.__pressed:
+            return False
+        else:
             self.__pressed = True
         return self.__pressed
 
