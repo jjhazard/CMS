@@ -107,11 +107,11 @@ def requestMonitor():
     global dispatched
     global queue
     global printer
-    pressed = False
+    was_pressed = False
     while running:
-        if request.value:
-            if not pressed:
-                pressed = True
+        if request.pressed():
+            if not was_pressed:
+                was_pressed = True
                 code = available.get()
                 printer.print(code)
                 dispatched.add(code)
@@ -123,7 +123,7 @@ def requestMonitor():
                     global config
                     config.newSize(size)
         else:
-            pressed = False
+            was_pressed = False
 
 #Continously check queue for codes
 #Read the first code off the queue
