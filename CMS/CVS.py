@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 #Update
 from apscheduler.schedulers.background import BackgroundScheduler
 #Devices
-from lib.Devices import Transceiver, Relay, Numberpad, Buzzer
+from lib.Devices import Transceiver, Relay, Numberpad
 #Threads
 from lib.Tasking import RThread, FLogger
 from time import sleep
