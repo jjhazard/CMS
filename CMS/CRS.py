@@ -181,4 +181,4 @@ if __name__ == '__main__':
     sched.start()
     attempt(CRS, ["Failure in dispatcher."])
     sched.shutdown()
-    exit{1)
+    exit(1)
