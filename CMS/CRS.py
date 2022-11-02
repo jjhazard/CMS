@@ -34,7 +34,7 @@ try:
     request = Button()
 except:
     logger.error('Failed to detect device.')
-    exit(0)
+    exit(1)
 ####################################
 #           UPDATE DATA            #
 ####################################
