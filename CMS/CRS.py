@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 #Devices
 from lib.Devices import Transceiver, Button, Printer
 #Multithreading
-from lib.Tasking import RThread, FLogger
+from lib.Tasking import State, RThread, FLogger
 from time import sleep
 ####################################
 #        PROGRAM VARIABLES         #
@@ -23,15 +23,18 @@ config     = Config(folderPath)
 size       = 0
 #Update scheduler
 sched = BackgroundScheduler()
-#Device variables
-transceiver = Transceiver('CRS')
-printer = Printer()
-request = Button()
 #Logger variable
 logger = FLogger()
 #Subprocess Status
-running = True
-
+running = State()
+try:
+    #Device variables
+    transceiver = Transceiver(running, 'CRS')
+    printer = Printer()
+    request = Button()
+except:
+    logger.error('Failed to detect device.')
+    exit(0)
 ####################################
 #           UPDATE DATA            #
 ####################################
@@ -107,7 +110,7 @@ def requestMonitor():
     global dispatched
     global queue
     global printer
-    while running:
+    while running():
         if not request.new():
             continue
         code = available.get()
@@ -129,17 +132,22 @@ def commsMonitor():
     global tranceiver
     global queue
     global running
-    while running:
-        if queue.exists():
-            code = queue.read()
-            transceiver.send(code)
-            queue.pop()
+    while running():
+        if not queue.exists():
+            continue
+        code = queue.read()
+        transceiver.send(code)
+        queue.pop()
 
 ####################################
 #         MAIN DISPATCHER          #
 ####################################
 #Code Request System
 def CRS():
+    #Start program
+    global running
+    running.start()
+    
     #Ensure database exists and is up to date on startup
     attempt(update, "Failure to update.")
 
@@ -148,20 +156,19 @@ def CRS():
     communicator    = RThread(attempt, [commsMonitor, "Failure to communicate codes."])
 
     #Continuously keep subprocesses running
-    global running
-    while running:
+    while running():
         request_handler.renew()
         communicator.renew()
         sleep(60)
 
 #if anything goes wrong, stop running and log the error
 def attempt(function, errorMessage):
+    global running
+    global logger
     try:
         function()
     except Exception as e:
-        global running
-        global logger
-        running = False
+        running.stop()
         logger.error(errorMessage)
 
 #Start the scheduler (occurs when program starts)
