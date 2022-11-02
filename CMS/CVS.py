@@ -20,14 +20,18 @@ date = datetime.today()
 dispatched = Dispatched(folderPath, date)
 #Update variable
 sched = BackgroundScheduler()
-#Program State
-running = State()
-#Device variables
-transceiver = Transceiver(running, 'CVS')
-numberpad = Numberpad(running)
-relay = Relay()
 #Logger variable
 logger = FLogger()
+#Program State
+running = State()
+try:
+    #Device variables
+    transceiver = Transceiver(running, 'CVS')
+    numberpad = Numberpad(running)
+    relay = Relay()
+except:
+    logger.error('Failed to detect device.')
+    exit(1)
 ####################################
 #             Update               #
 ####################################
